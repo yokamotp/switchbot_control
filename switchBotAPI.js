@@ -57,21 +57,21 @@ function checkDevicePower() {
 }
 
 function controlRemoteDevice(command) {
-  const currentPower = checkDevicePower();
+  // const currentPower = checkDevicePower();
 
-  if (currentPower === "unknown") {
-    Logger.log("🚨 デバイスの状態を取得できなかったため、コマンドを送信しません。");
-    return false;
-  }
+  // if (currentPower === "unknown") {
+  //   Logger.log("🚨 デバイスの状態を取得できなかったため、コマンドを送信しません。");
+  //   return false;
+  // }
 
-  if (command === "turnOn" && currentPower === "on") {
-    Logger.log("✅ デバイスはすでに ON のため、turnOn コマンドを送信しません。");
-    return true;
-  }
-  if (command === "turnOff" && currentPower === "off") {
-    Logger.log("✅ デバイスはすでに OFF のため、turnOff コマンドを送信しません。");
-    return true;
-  }
+  // if (command === "turnOn" && currentPower === "on") {
+  //   Logger.log("✅ デバイスはすでに ON のため、turnOn コマンドを送信しません。");
+  //   return true;
+  // }
+  // if (command === "turnOff" && currentPower === "off") {
+  //   Logger.log("✅ デバイスはすでに OFF のため、turnOff コマンドを送信しません。");
+  //   return true;
+  // }
 
   // 設定情報を取得
   const token = getConfigProperty('SWITCHBOT_TOKEN');
