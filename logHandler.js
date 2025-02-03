@@ -14,10 +14,8 @@ function logACAction(eventId, eventTitle, calendarTitle, checkinTime, checkoutTi
     return;
   }
 
-  // スプレッドシートに記録
-  sheet.appendRow([eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action, new Date()]);
+  sheet.appendRow([eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action, new Date()]); //順番は変更不可。実行済みかチェックする際に列を定数で指定している。
 }
-
 
 // 指定したイベントが既に実行済みかをチェック
 function isEventAlreadyProcessed(eventId, action) {
@@ -36,10 +34,13 @@ function isEventAlreadyProcessed(eventId, action) {
   }
 
   const data = sheet.getDataRange().getValues(); // すべてのデータを取得
+
   for (let i = 1; i < data.length; i++) { // 1行目はヘッダーなのでスキップ
-    if (data[i][0] === eventId && data[i][3] === action) {
+    if (data[i][columnEventId] === eventId && data[i][columnAction] === action) {
       return true; // すでに同じイベントのON/OFFが実行済み
     }
   }
   return false;
 }
+
+

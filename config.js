@@ -1,7 +1,14 @@
 function setConfigProperties() {
+
+  // 定数
+  // Spreadsheetの列
+  const columnEventId = 0; //EventIDの記録列
+  const columnAction = 5; //Action（ON/OFF）の記録列
+
+  // ユーザ初期値
   const scriptProperties = PropertiesService.getScriptProperties();
 
-  // 初期設定（機密情報）をスクリプトプロパティに保存
+  // 初期値をスクリプトプロパティに保存
   for (let key in INITIAL_CONFIG) {
     scriptProperties.setProperty(key, INITIAL_CONFIG[key]);
   }

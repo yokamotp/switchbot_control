@@ -1,66 +1,17 @@
 
 
-function checkDevicePower() {
-  const token = getConfigProperty('SWITCHBOT_TOKEN');
-  const secret = getConfigProperty('SWITCHBOT_SECRET');
-  const remoteId = getConfigProperty('REMOTE_ID'); // デバイスID
-
-  const url = 'https://api.switch-bot.com';
-  const path = `/v1.1/devices/${remoteId}/commands`;
-  const timestamp = new Date().getTime().toString();
-  const nonce = Utilities.getUuid();
-
-  let sign = Utilities.computeHmacSignature(
-    Utilities.MacAlgorithm.HMAC_SHA_256,
-    token + timestamp + nonce,
-    secret
-  );
-  sign = Utilities.base64Encode(sign).toUpperCase();
-
-  const headers = {
-    'Authorization': token,
-    'sign': sign,
-    't': timestamp,
-    'nonce': nonce,
-  };
-
-  const payload = JSON.stringify({
-    command: "lowSpeed", // 「lowSpeed」ボタンで ON/OFF 判定
-    parameter: "default",
-    commandType: "command"
-  });
-
-  const options = {
-    method: 'post',
-    headers: headers,
-    payload: payload,
-    contentType: 'application/json',
-  };
-
-  try {
-    const response = UrlFetchApp.fetch(url + path, options);
-    const responseJson = JSON.parse(response.getContentText());
-
-    Logger.log("Check Device Power Response: " + JSON.stringify(responseJson));
-
-    if (responseJson.statusCode === 100) {
-      Logger.log("✅ デバイスは ON（`lowSpeed` コマンドが成功）");
-      return "on";
-    } else {
-      Logger.log("❌ デバイスは OFF の可能性あり（`lowSpeed` コマンドが失敗）");
-      return "off";
-    }
-  } catch (error) {
-    Logger.log("🚨 エラー: `lowSpeed` コマンドの API 実行に失敗しました - " + error.message);
-    return "unknown";
-  }
-}
-
-function controlRemoteDevice(action) {
+function controlRemoteDevice(action, eventId, eventTitle, roomName, calendarTitle, checkinTime, checkoutTime) {
   // 設定情報を取得
   const token = getConfigProperty('SWITCHBOT_TOKEN');
   const secret = getConfigProperty('SWITCHBOT_SECRET');
   const remoteId = getConfigProperty('REMOTE_ID');
+  const sheet = SpreadsheetApp.openById(getConfigProperty('SPREADSHEET_ID')).getSheetByName(getConfigProperty('SHEET_NAME'));
+
+  // 既に実行済みか確認
+  if (isEventAlreadyProcessed(eventId, action)) {
+    Logger.log('スキップ: すでに実行済みのアクション - ' + action);
+    return false;
+  }
 
   // ON/OFF のコマンドを明示的に分離
   let command;
@@ -119,6 +70,7 @@ function controlRemoteDevice(action) {
     // 成功時 (`statusCode: 100`)
     if (responseJson.statusCode === 100) {
       Logger.log('デバイス制御成功: ' + command);
+      logACAction(eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action); // スプレッドシートに記録
       return true;
     } else {
       Logger.log('エラー: SwitchBot API からエラー応答: ' + responseJson.message);
@@ -129,5 +81,3 @@ function controlRemoteDevice(action) {
     return false;
   }
 }
-
-
