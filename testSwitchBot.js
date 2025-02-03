@@ -89,3 +89,13 @@ function testSendCommand(command) {
     return false;
   }
 }
+
+function testTurnOn() {
+  Logger.log("Testing ON command");
+  testSendCommand("turnOn");
+}
+
+function testTurnOff() {
+  Logger.log("Testing OFF command");
+  testSendCommand("turnOff");
+}
