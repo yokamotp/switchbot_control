@@ -56,27 +56,22 @@ function checkDevicePower() {
   }
 }
 
-function controlRemoteDevice(command) {
-  // const currentPower = checkDevicePower();
-
-  // if (currentPower === "unknown") {
-  //   Logger.log("🚨 デバイスの状態を取得できなかったため、コマンドを送信しません。");
-  //   return false;
-  // }
-
-  // if (command === "turnOn" && currentPower === "on") {
-  //   Logger.log("✅ デバイスはすでに ON のため、turnOn コマンドを送信しません。");
-  //   return true;
-  // }
-  // if (command === "turnOff" && currentPower === "off") {
-  //   Logger.log("✅ デバイスはすでに OFF のため、turnOff コマンドを送信しません。");
-  //   return true;
-  // }
-
+function controlRemoteDevice(action) {
   // 設定情報を取得
   const token = getConfigProperty('SWITCHBOT_TOKEN');
   const secret = getConfigProperty('SWITCHBOT_SECRET');
   const remoteId = getConfigProperty('REMOTE_ID');
+
+  // ON/OFF のコマンドを明示的に分離
+  let command;
+  if (action === 'ON') {
+    command = 'turnOn';
+  } else if (action === 'OFF') {
+    command = 'turnOff';
+  } else {
+    Logger.log('エラー: 不正なアクション指定 - ' + action);
+    return false;
+  }
 
   // APIエンドポイントとリクエスト設定
   const url = 'https://api.switch-bot.com';
@@ -123,15 +118,16 @@ function controlRemoteDevice(command) {
 
     // 成功時 (`statusCode: 100`)
     if (responseJson.statusCode === 100) {
-      Logger.log("✅ デバイス制御成功: " + command);
+      Logger.log('デバイス制御成功: ' + command);
       return true;
     } else {
-      Logger.log("❌ エラー: SwitchBot API からエラー応答: " + responseJson.message);
+      Logger.log('エラー: SwitchBot API からエラー応答: ' + responseJson.message);
       return false;
     }
   } catch (error) {
-    Logger.log("🚨 エラー: SwitchBot API リクエスト失敗 - " + error.message);
+    Logger.log('エラー: SwitchBot API リクエスト失敗 - ' + error.message);
     return false;
   }
 }
+
 
