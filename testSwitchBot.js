@@ -1,8 +1,8 @@
 
 function testCommands() {
   const commands = [
-    //"turnOn",
-    //"turnOff",
+    "turnOn",
+    "turnOff",
     "setMode",
     "setAllSettings",
     "setSpeed",
@@ -92,10 +92,10 @@ function testSendCommand(command) {
 
 function testTurnOn() {
   Logger.log("Testing ON command");
-  testSendCommand("turnOn");
+  testSendCommand(ACTION_TURN_ON);
 }
 
 function testTurnOff() {
   Logger.log("Testing OFF command");
-  testSendCommand("turnOff");
+  testSendCommand(ACTION_TURN_OFF);
 }

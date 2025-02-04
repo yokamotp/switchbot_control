@@ -4,6 +4,10 @@
   // Spreadsheetの列
   const columnEventId = 0; //EventIDの記録列
   const columnAction = 5; //Action（ON/OFF）の記録列
+
+  // SwitchBot操作コマンド
+const ACTION_TURN_ON = "turnOn";
+const ACTION_TURN_OFF = "turnOff";
   
 // (各取得方法は、手順書に記載してます。)
 const INITIAL_CONFIG = {

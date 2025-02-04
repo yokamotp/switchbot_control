@@ -1,24 +1,21 @@
 
 
-function controlRemoteDevice(action, eventId, eventTitle, roomName, calendarTitle, checkinTime, checkoutTime) {
+function controlRemoteDevice(action) {
+
+  action = action.toUpperCase(); // 大文字に変換
+
   // 設定情報を取得
   const token = getConfigProperty('SWITCHBOT_TOKEN');
   const secret = getConfigProperty('SWITCHBOT_SECRET');
   const remoteId = getConfigProperty('REMOTE_ID');
   const sheet = SpreadsheetApp.openById(getConfigProperty('SPREADSHEET_ID')).getSheetByName(getConfigProperty('SHEET_NAME'));
 
-  // 既に実行済みか確認
-  if (isEventAlreadyProcessed(eventId, action)) {
-    Logger.log('スキップ: すでに実行済みのアクション - ' + action);
-    return false;
-  }
-
   // ON/OFF のコマンドを明示的に分離
   let command;
   if (action === 'ON') {
-    command = 'turnOn';
+    command = ACTION_TURN_ON;
   } else if (action === 'OFF') {
-    command = 'turnOff';
+    command = ACTION_TURN_OFF;
   } else {
     Logger.log('エラー: 不正なアクション指定 - ' + action);
     return false;
@@ -70,7 +67,6 @@ function controlRemoteDevice(action, eventId, eventTitle, roomName, calendarTitl
     // 成功時 (`statusCode: 100`)
     if (responseJson.statusCode === 100) {
       Logger.log('デバイス制御成功: ' + command);
-      logACAction(eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action); // スプレッドシートに記録
       return true;
     } else {
       Logger.log('エラー: SwitchBot API からエラー応答: ' + responseJson.message);

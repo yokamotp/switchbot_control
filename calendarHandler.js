@@ -87,7 +87,7 @@ Logger.log("処理対象のイベント: "  + calendarTitle);
       // エアコンON
       if (!isEventAlreadyProcessed(eventId, 'ON')) {
         Logger.log("エアコンをONにします (モード: " + currentMode + ")");
-        const success = controlRemoteDevice('turnOn');
+        const success = controlRemoteDevice('ON');
         if (success) {
           logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'ON');
         } else {
@@ -102,7 +102,7 @@ Logger.log("処理対象のイベント: "  + calendarTitle);
     if (now >= checkoutTime && now < checkoutEnd) {
       if (!isEventAlreadyProcessed(eventId, 'OFF')) {
         Logger.log("エアコンをOFFにします");
-        const success = controlRemoteDevice('turnOff');
+        const success = controlRemoteDevice('OFF');
         if (success) {
           logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'OFF');
         } else {

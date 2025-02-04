@@ -78,7 +78,7 @@ function controlDevice(deviceId, command) {
 
   // リクエストボディを作成
   const payload = JSON.stringify({
-    command: command, // 'turnOn' または 'turnOff'
+    command: command, 
     parameter: 'default',
     commandType: 'command',
   });
