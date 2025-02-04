@@ -1,7 +1,7 @@
 function parseEventDescription(description) {
-  // 正規表現で CHECKIN, CHECKOUT, PROPERTY を取得
-  const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \+\d{4})/);
-  const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \+\d{4})/);
+  // 正規表現で CHECKIN, CHECKOUT, PROPERTY を取得（+0900 の部分があってもなくても対応）
+  const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
+  const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const propertyMatch = description.match(/PROPERTY:\s*(.+)/);
 
   if (!checkinMatch || !checkoutMatch) {
@@ -9,15 +9,16 @@ function parseEventDescription(description) {
     return null;
   }
 
-  // 日時をDateオブジェクトに変換
-  const checkinTime = new Date(checkinMatch[1]);
-  const checkoutTime = new Date(checkoutMatch[1]);
+  // 日時文字列を取得し、時差情報 (+0900) を削除して `Date` オブジェクトに変換
+  const checkinTime = new Date(checkinMatch[1]); 
+  const checkoutTime = new Date(checkoutMatch[1]); 
 
   // PROPERTYの値を取得（カンマ区切りの場合、最初の物件のみ取得）
   const property = propertyMatch ? propertyMatch[1].split(',')[0].trim() : "不明";
 
   return { checkinTime, checkoutTime, property };
 }
+
 
 
 function getSeasonalMode() {
