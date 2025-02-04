@@ -1,4 +1,10 @@
 // 初期設定
+
+  // 定数
+  // Spreadsheetの列
+  const columnEventId = 0; //EventIDの記録列
+  const columnAction = 5; //Action（ON/OFF）の記録列
+  
 // (各取得方法は、手順書に記載してます。)
 const INITIAL_CONFIG = {
 
