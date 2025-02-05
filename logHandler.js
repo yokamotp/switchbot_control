@@ -1,5 +1,5 @@
 // ログをスプレッドシートに記録する関数
-function logACAction(eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action) {
+function logACAction(eventId, property,eventTitle, checkinTime, checkoutTime, action) {
   const spreadsheetId = getConfigProperty('SPREADSHEET_ID');
   const sheetName = getConfigProperty('SHEET_NAME');
 
@@ -14,7 +14,7 @@ function logACAction(eventId, eventTitle, calendarTitle, checkinTime, checkoutTi
     return;
   }
 
-  sheet.appendRow([eventId, eventTitle, calendarTitle, checkinTime, checkoutTime, action, new Date()]); //順番は変更不可。実行済みかチェックする際に列を定数で指定している。
+  sheet.appendRow([eventId,property ,eventTitle, checkinTime, checkoutTime, action, new Date()]); //順番は変更不可。実行済みかチェックする際に列を定数で指定している。
 }
 
 // 指定したイベントが既に実行済みかをチェック

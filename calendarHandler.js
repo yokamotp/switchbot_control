@@ -3,14 +3,14 @@ function parseEventDescription(description) {
   const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const propertyMatch = description.match(/PROPERTY:\s*(.+)/);
-  const roomIdMatch = description.match(/ROOMID:\s*(\d+)/);
+  const roomIdMatch = description.match(/ROOMID:\s*(\d+)/); // 数値のROOMIDのみ取得
 
   if (!checkinMatch || !checkoutMatch) {
     Logger.log("CHECKIN または CHECKOUT のデータが見つかりません");
     return null;
   }
 
-  // 日時文字列を取得し、時差情報 (+0900) を削除して `Date` オブジェクトに変換
+  // 日時文字列を取得し、`Date` オブジェクトに変換
   const checkinTime = new Date(checkinMatch[1]); 
   const checkoutTime = new Date(checkoutMatch[1]); 
 
@@ -20,8 +20,12 @@ function parseEventDescription(description) {
   // ROOMID の値を取得（数値として扱う）
   const roomId = roomIdMatch ? parseInt(roomIdMatch[1], 10) : null;
 
+  // ログで確認
+  Logger.log(`解析結果 - ROOMID: ${roomId}, PROPERTY: ${property}`);
+
   return { checkinTime, checkoutTime, property, roomId };
 }
+
 
 
 
@@ -76,7 +80,7 @@ function checkCalendarForACControl() {
       continue;
     }
 
-    const { checkinTime, checkoutTime, roomId } = parsedData;
+    const { checkinTime, checkoutTime, property, roomId } = parsedData;
     
     if (!roomId) {
       Logger.log("ROOMID が見つからないためスキップ: " + eventTitle);
@@ -94,10 +98,8 @@ function checkCalendarForACControl() {
     const checkoutEnd = new Date(checkoutTime.getTime() + 10 * 60 * 1000);
 
 
-    Logger.log("予約情報 - 物件: " + property + ", 予約者: " + calendarTitle);
     Logger.log("CHECKIN時間: " + checkinTime.toLocaleString());
     Logger.log("CHECKOUT時間: " + checkoutTime.toLocaleString());
-    Logger.log("現在のモード: " + currentMode);
     Logger.log(`予約情報 - ROOMID: ${roomId}`);
     
     // 予約が継続中の部屋があるかどうかを判定
@@ -106,12 +108,11 @@ function checkCalendarForACControl() {
 
       if (!isEventAlreadyProcessed(eventId, 'ON')) {
         Logger.log(`ROOMID ${roomId} のデバイスをONにします`);
-        Logger.log("エアコンをONにします (モード: " + currentMode + ")");
-        const success = controlRemoteDevice('ON',deviceIds);
+        const success = controlRemoteDevices('ON',deviceIds);
         if (success) {
-          logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'ON');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ON');
         } else {
-          logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'ERROR: ON コマンド失敗');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ERROR: ON コマンド失敗');
         }
       } else {
         Logger.log("エアコンONは既に実行済み: " + property);
@@ -124,9 +125,9 @@ function checkCalendarForACControl() {
         Logger.log(`ROOMID ${roomId} のデバイスをOFFにします`);
         const success = controlRemoteDevices('OFF', deviceIds);
         if (success) {
-          logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'OFF');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'OFF');
         } else {
-          logACAction(eventId, property, calendarTitle, checkinTime, checkoutTime, 'ERROR: OFF コマンド失敗');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ERROR: OFF コマンド失敗');
         }
       } else {
         Logger.log("エアコンOFFは既に実行済み: " + property);

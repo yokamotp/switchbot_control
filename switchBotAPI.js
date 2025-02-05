@@ -1,11 +1,27 @@
-function controlRemoteDevices(action, roomId) {
+function controlRemoteDevices(action, deviceIds) {
   action = action.toUpperCase(); // 大文字に変換
 
-  // ROOMID に対応するデバイスIDを取得
-  const deviceIds = getDevicesByRoom(roomId);
+  // `deviceIds` の型と内容を確認
+  Logger.log(`制御対象のデバイスIDs: ${JSON.stringify(deviceIds)}`);
 
-  if (deviceIds.length === 0) {
-    Logger.log(`エラー: ROOMID ${roomId} に対応するデバイスが見つかりません。`);
+  // `deviceIds` が文字列の場合、カンマ区切りで分割
+  if (typeof deviceIds === "string") {
+    deviceIds = deviceIds.split(",").map(id => id.trim());
+  }
+
+  if (!Array.isArray(deviceIds) || deviceIds.length === 0) {
+    Logger.log("エラー: デバイスが見つかりません。");
+    return false;
+  }
+
+  // **ON/OFF コマンドの設定**
+  let command;
+  if (action === 'ON') {
+    command = "turnOn";  // 直接コマンド指定
+  } else if (action === 'OFF') {
+    command = "turnOff"; // 直接コマンド指定
+  } else {
+    Logger.log(`エラー: 不正なアクション指定 - ${action}`);
     return false;
   }
 
@@ -16,18 +32,7 @@ function controlRemoteDevices(action, roomId) {
 
   let successCount = 0;
 
-  deviceIds.forEach(deviceId => {
-    // ON/OFF のコマンドを明示的に分離
-    let command;
-    if (action === 'ON') {
-      command = ACTION_TURN_ON;
-    } else if (action === 'OFF') {
-      command = ACTION_TURN_OFF;
-    } else {
-      Logger.log(`エラー: 不正なアクション指定 - ${action}`);
-      return false;
-    }
-
+  for (let deviceId of deviceIds) {
     // APIエンドポイントとリクエスト設定
     const url = 'https://api.switch-bot.com';
     const path = `/v1.1/devices/${deviceId}/commands`;
@@ -81,11 +86,10 @@ function controlRemoteDevices(action, roomId) {
     } catch (error) {
       Logger.log(`エラー: デバイス ${deviceId} へのリクエスト失敗 - ${error.message}`);
     }
-  });
-
+  }
+   
   return successCount > 0;
 }
-
 
 function getDevicesByRoom(roomId) {
   const sheet = SpreadsheetApp.openById(getConfigProperty('SPREADSHEET_ID')).getSheetByName('Devices');
@@ -94,20 +98,30 @@ function getDevicesByRoom(roomId) {
     return [];
   }
 
-  const data = sheet.getDataRange().getValues(); // 全データ取得
+  const data = sheet.getDataRange().getValues();
   let devices = [];
 
-  // デバイス一覧を取得
   for (let i = 1; i < data.length; i++) { // 1行目はヘッダーなのでスキップ
     const row = data[i];
-    const sheetRoomId = row[columnRoomId]; // roomId (B列)
-    const deviceId = row[columnDeviceId]; // deviceId (E列)
 
-    if (String(sheetRoomId) === String(roomId)) {
+    // `roomId` と `deviceId` が正しく取得できるかチェック
+    if (!row[columnRoomId] || !row[columnDeviceId]) {
+      Logger.log(`警告: デバイス情報が不完全 - ${JSON.stringify(row)}`);
+      continue;
+    }
+
+    const sheetRoomId = String(row[columnRoomId]).trim(); // roomId (B列)
+    const deviceId = String(row[columnDeviceId]).trim(); // deviceId (E列)
+
+    if (sheetRoomId === String(roomId)) {
       devices.push(deviceId);
     }
   }
 
+  // ログ出力（取得したデバイスIDの配列を確認）
+  Logger.log(`ROOMID ${roomId} に対応するデバイスIDリスト: ${JSON.stringify(devices)}`);
+
   return devices;
 }
+
 
