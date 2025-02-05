@@ -51,12 +51,14 @@ SwitchBot API を使用するために、API認証に必要な **トークン** 
 3. **「ファイル」 → 「名前を変更」で、適当な名前（例: `SwitchBot Logs`）をつける**
 4. **シート名を `Logs` に変更**
 5. **以下のヘッダー行を設定**
-   - `Timestamp`: 実行日時  
+   
    - `Event ID`: GoogleカレンダーのイベントID  
-   - `Event Title`: 予約のイベントタイトル（例: 「Joyce Huang (HM3JPB3M8D)」）  
-   - `Room Name`: 予約された部屋名  
-   - `Calendar Title`: Googleカレンダーのイベントタイトル  
+   - `部屋名(Event Title)`: 予約のイベントタイトル（例: 「Joyce Huang (HM3JPB3M8D)」）  
+   - `予約者`: 予約された部屋名  
+   - `Check In`: 予約開始日時  
+   - `Check Out`: 予約終了日時
    - `Action`: 実行されたアクション (`ON` または `OFF`)  
+   - `Timestamp`: 実行日時  
 
 ---
 
@@ -107,7 +109,55 @@ const INITIAL_CONFIG = {
 
 ---
 
-### 📌 2.4 `初期設定（機密）.gs` の編集
+### 📌 2.4 `REMOTE_ID` の取得手順  
+
+`REMOTE_ID` は、SwitchBotデバイスの仮想リモコンIDであり、GASを通じて取得することができます。以下の手順で `REMOTE_ID` を取得してください。  
+
+#### **📌 手順**  
+
+1. **`getDeviceInfo.gs` ファイルを開く**  
+   - Google Apps Script (GAS) のエディタで `getDeviceInfo.gs` を開く  
+
+2. **`getDeviceInfo()` 関数を実行**  
+   - GASエディタの上部メニューから `実行` → `関数を選択` → `getDeviceInfo` を選択  
+   - `▶ 実行` ボタンをクリックしてスクリプトを実行  
+
+3. **ログを確認する**  
+   - `表示` → `ログ` を開く  
+   - 出力されたJSONデータの中から、該当するデバイスの `deviceId` を探す  
+
+4. **取得した `deviceId` を `REMOTE_ID` に設定する**  
+   - `deviceId` の値をコピーし、 `初期設定（機密）.gs` の `REMOTE_ID` に貼り付ける  
+
+---
+
+#### **📌 出力ログの例**
+
+```json
+{
+  "statusCode": 100,
+  "body": {
+    "deviceList": [
+      {
+        "deviceId": "02-95480840",
+        "deviceName": "エアコンリモコン",
+        "deviceType": "Remote",
+        "hubDeviceId": "000000000000"
+      },
+      {
+        "deviceId": "03-12345678",
+        "deviceName": "リビングライト",
+        "deviceType": "Plug Mini (JP)",
+        "hubDeviceId": "000000000000"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 📌 2.5 `初期設定（機密）.gs` の編集
 
  `初期設定（機密）.gs` というファイルの内容をご自身の情報に更新してください。  
 このファイルには **APIトークン、デバイスID、GoogleスプレッドシートのID** などの設定を記入します。

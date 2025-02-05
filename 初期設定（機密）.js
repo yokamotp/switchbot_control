@@ -1,9 +1,13 @@
 // 初期設定
 
   // 定数
-  // Spreadsheetの列
+  // Spreadsheet Logsの列
   const columnEventId = 0; //EventIDの記録列
   const columnAction = 5; //Action（ON/OFF）の記録列
+
+  // Spreadsheet Devicesの列
+  const columnRoomId = 1; // roomId (B列)
+  const columnDeviceId = 4; // deviceId (E列)
 
   // SwitchBot操作コマンド
 const ACTION_TURN_ON = "turnOn";

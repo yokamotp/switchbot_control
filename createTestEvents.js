@@ -20,7 +20,8 @@ function createTestEvents() {
       title: "【テスト01】終日イベント (エアコンON/OFFあり)",
       description: `CHECKIN: ${formatDateTime(CHECKIN_TIME)}
 CHECKOUT: ${formatDateTime(CHECKOUT_TIME)}
-PROPERTY: 【067】グラシア上飯田#601`,
+PROPERTY: 【067】グラシア上飯田#601
+ROOMID: 101`,
       startTime: CHECKIN_TIME,
       endTime: CHECKOUT_TIME,
       isAllDay: true // 終日イベント
@@ -30,7 +31,8 @@ PROPERTY: 【067】グラシア上飯田#601`,
       title: "【テスト02】通常の予約 (エアコンON 8:30, OFF 8:35)",
       description: `CHECKIN: ${formatDateTime(CHECKIN_TIME)}
 CHECKOUT: ${formatDateTime(CHECKOUT_TIME)}
-PROPERTY: 【101】アーバンライフ新宿#802`,
+PROPERTY: 【101】アーバンライフ新宿#802
+ROOMID: 101`,
       startTime: CHECKIN_TIME,
       endTime: CHECKOUT_TIME,
       isAllDay: true
@@ -48,7 +50,8 @@ PROPERTY: 【101】アーバンライフ新宿#802`,
       title: "【テスト04】日時フォーマットエラー (エラー期待)",
       description: `CHECKIN: 2025-02-05 08:40:00
 CHECKOUT: 2025-02-05 08:50:00
-PROPERTY: 【150】グランドビュー新宿#1201`, // フォーマットエラー
+PROPERTY: 【150】グランドビュー新宿#1201
+ROOMID: 101`, // フォーマットエラー
       startTime: CHECKIN_TIME,
       endTime: CHECKOUT_TIME,
       isAllDay: true
@@ -58,7 +61,8 @@ PROPERTY: 【150】グランドビュー新宿#1201`, // フォーマットエ�
       title: "【テスト05】5分間の予約 (エアコンON 8:30, OFF 8:35)",
       description: `CHECKIN: ${formatDateTime(CHECKIN_TIME)}
 CHECKOUT: ${formatDateTime(new Date(CHECKIN_TIME.getTime() + 5 * 60 * 1000))}
-PROPERTY: 【606】マジェスティック秋葉原#702`,
+PROPERTY: 【606】マジェスティック秋葉原#702
+ROOMID: 101`,
       startTime: CHECKIN_TIME,
       endTime: new Date(CHECKIN_TIME.getTime() + 5 * 60 * 1000),
       isAllDay: true
