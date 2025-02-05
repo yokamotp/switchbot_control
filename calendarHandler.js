@@ -11,8 +11,8 @@ function parseEventDescription(description) {
   }
 
   // 日時文字列を取得し、`Date` オブジェクトに変換
-  const checkinTime = new Date(checkinMatch[1]); 
-  const checkoutTime = new Date(checkoutMatch[1]); 
+  const checkinTime = new Date(checkinMatch[1] + " GMT+0900"); 
+const checkoutTime = new Date(checkoutMatch[1] + " GMT+0900");
 
   // PROPERTYの値を取得（カンマ区切りの場合、最初の物件のみ取得）
   const property = propertyMatch ? propertyMatch[1].split(',')[0].trim() : "不明";

@@ -98,15 +98,19 @@ function getDevicesByRoom(roomId) {
     return [];
   }
 
+  // **カラムのインデックスを指定**
+  const columnRoomId = 1; // B列（roomId）
+  const columnDeviceId = 4; // E列（deviceId）
+
   const data = sheet.getDataRange().getValues();
   let devices = [];
 
   for (let i = 1; i < data.length; i++) { // 1行目はヘッダーなのでスキップ
     const row = data[i];
 
-    // `roomId` と `deviceId` が正しく取得できるかチェック
-    if (!row[columnRoomId] || !row[columnDeviceId]) {
-      Logger.log(`警告: デバイス情報が不完全 - ${JSON.stringify(row)}`);
+    
+    // **行が空の場合はスキップ**
+    if (!row || row.length < 5 || row[columnRoomId] === undefined || row[columnDeviceId] === undefined) {
       continue;
     }
 
@@ -118,10 +122,12 @@ function getDevicesByRoom(roomId) {
     }
   }
 
-  // ログ出力（取得したデバイスIDの配列を確認）
-  Logger.log(`ROOMID ${roomId} に対応するデバイスIDリスト: ${JSON.stringify(devices)}`);
+  // **デバイスリストが正しく取得されたか確認**
+  Logger.log(`取得した ROOMID: ${roomId}, 対応するデバイスIDリスト: ${JSON.stringify(devices)}`);
 
   return devices;
 }
+
+
 
 
