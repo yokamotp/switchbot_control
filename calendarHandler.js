@@ -1,9 +1,13 @@
 function parseEventDescription(description) {
-  // 正規表現で CHECKIN, CHECKOUT, PROPERTY, ROOMID を取得
-  const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
-  const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
+  // 正規表現で CHECKIN, CHECKOUT, PROPERTY を取得
+  // const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
+  const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2})/);
+  const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const propertyMatch = description.match(/PROPERTY:\s*(.+)/);
-  const roomIdMatch = description.match(/ROOMID:\s*(\d+)/); // 数値のROOMIDのみ取得
+
+  Logger.log(`正規表現で取得したcheckIn: ${checkinMatch}`);
+  Logger.log(`正規表現で取得したcheckOut: ${checkoutMatch}`);
+
 
   if (!checkinMatch || !checkoutMatch) {
     Logger.log("CHECKIN または CHECKOUT のデータが見つかりません");
@@ -12,18 +16,15 @@ function parseEventDescription(description) {
 
   // 日時文字列を取得し、`Date` オブジェクトに変換
   const checkinTime = new Date(checkinMatch[1] + " GMT+0900"); 
-const checkoutTime = new Date(checkoutMatch[1] + " GMT+0900");
+  const checkoutTime = new Date(checkoutMatch[1] + " GMT+0900");
 
   // PROPERTYの値を取得（カンマ区切りの場合、最初の物件のみ取得）
   const property = propertyMatch ? propertyMatch[1].split(',')[0].trim() : "不明";
 
-  // ROOMID の値を取得（数値として扱う）
-  const roomId = roomIdMatch ? parseInt(roomIdMatch[1], 10) : null;
-
   // ログで確認
-  Logger.log(`解析結果 - ROOMID: ${roomId}, PROPERTY: ${property}`);
+  Logger.log(`解析結果 - PROPERTY: ${property}`);
 
-  return { checkinTime, checkoutTime, property, roomId };
+  return { checkinTime, checkoutTime, property };
 }
 
 
@@ -80,35 +81,26 @@ function checkCalendarForACControl() {
       continue;
     }
 
-    const { checkinTime, checkoutTime, property, roomId } = parsedData;
+    const { checkinTime, checkoutTime, property } = parsedData;
     
-    if (!roomId) {
-      Logger.log("ROOMID が見つからないためスキップ: " + eventTitle);
-      continue;
-    }
-
-    // 部屋に紐づくデバイス一覧を取得
-    const deviceIds = getDevicesByRoom(roomId);
+    //デバイス一覧を取得
+    const deviceIds = getAllDeviceIds();
     if (deviceIds.length === 0) {
-      Logger.log(`エラー: ROOMID ${roomId} に対応するデバイスが見つかりません。`);
+      Logger.log(`エラー: デバイスが見つかりません。`);
       continue;
     }
-
     const checkinStart = new Date(checkinTime.getTime() - 30 * 60 * 1000);
     const checkoutEnd = new Date(checkoutTime.getTime() + 10 * 60 * 1000);
 
-
     Logger.log("CHECKIN時間: " + checkinTime.toLocaleString());
     Logger.log("CHECKOUT時間: " + checkoutTime.toLocaleString());
-    Logger.log(`予約情報 - ROOMID: ${roomId}`);
     
-    // 予約が継続中の部屋があるかどうかを判定
     if (now >= checkinStart && now < checkoutEnd) {
       Logger.log("滞在中の部屋あり");
 
       if (!isEventAlreadyProcessed(eventId, 'ON')) {
-        Logger.log(`ROOMID ${roomId} のデバイスをONにします`);
-        const success = controlRemoteDevices('ON',deviceIds);
+        Logger.log("全デバイスをONにします");
+        const success = controlRemoteDevices('ON', deviceIds);
         if (success) {
           logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ON');
         } else {
@@ -119,10 +111,9 @@ function checkCalendarForACControl() {
       }
     }
 
-    // CHECKOUT 10分後を過ぎたらデバイスOFF
     if (now >= checkoutTime && now < checkoutEnd) {
       if (!isEventAlreadyProcessed(eventId, 'OFF')) {
-        Logger.log(`ROOMID ${roomId} のデバイスをOFFにします`);
+        Logger.log("全デバイスをOFFにします");
         const success = controlRemoteDevices('OFF', deviceIds);
         if (success) {
           logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'OFF');
@@ -132,10 +123,8 @@ function checkCalendarForACControl() {
       } else {
         Logger.log("エアコンOFFは既に実行済み: " + property);
       }
-      
     }
   }
-
   Logger.log("===== スクリプト終了: " + now.toLocaleString() + " =====");
 }
 

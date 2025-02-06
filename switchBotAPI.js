@@ -17,9 +17,9 @@ function controlRemoteDevices(action, deviceIds) {
   // **ON/OFF コマンドの設定**
   let command;
   if (action === 'ON') {
-    command = "turnOn";  // 直接コマンド指定
+    command = ACTION_TURN_ON;
   } else if (action === 'OFF') {
-    command = "turnOff"; // 直接コマンド指定
+    command = ACTION_TURN_OFF;
   } else {
     Logger.log(`エラー: 不正なアクション指定 - ${action}`);
     return false;
@@ -40,20 +40,20 @@ function controlRemoteDevices(action, deviceIds) {
     const nonce = Utilities.getUuid(); // UUIDを生成
 
     // HMAC-SHA256署名を生成
-    let sign = Utilities.computeHmacSignature(
-      Utilities.MacAlgorithm.HMAC_SHA_256,
-      token + timestamp + nonce,
-      secret
-    );
-    sign = Utilities.base64Encode(sign).toUpperCase();
+  let sign = Utilities.computeHmacSignature(
+    Utilities.MacAlgorithm.HMAC_SHA_256,
+    token + timestamp + nonce,
+    secret
+  );
+  sign = Utilities.base64Encode(sign).toUpperCase();
 
     // HTTPヘッダーを作成
-    const headers = {
-      'Authorization': token,
-      'sign': sign,
-      't': timestamp,
-      'nonce': nonce,
-    };
+  const headers = {
+    'Authorization': token,
+    'sign': sign,
+    't': timestamp,
+    'nonce': nonce,
+  };
 
     // リクエストボディを作成
     const payload = JSON.stringify({
@@ -87,11 +87,11 @@ function controlRemoteDevices(action, deviceIds) {
       Logger.log(`エラー: デバイス ${deviceId} へのリクエスト失敗 - ${error.message}`);
     }
   }
-   
+
   return successCount > 0;
 }
 
-function getDevicesByRoom(roomId) {
+function getAllDeviceIds() {
   const sheet = SpreadsheetApp.openById(getConfigProperty('SPREADSHEET_ID')).getSheetByName('Devices');
   if (!sheet) {
     Logger.log("エラー: Devices シートが見つかりません。");
@@ -99,35 +99,41 @@ function getDevicesByRoom(roomId) {
   }
 
   // **カラムのインデックスを指定**
-  const columnRoomId = 1; // B列（roomId）
   const columnDeviceId = 4; // E列（deviceId）
 
   const data = sheet.getDataRange().getValues();
   let devices = [];
+  const lastRow = getLastRowInColumn(sheet, columnDeviceId);
 
   for (let i = 1; i < data.length; i++) { // 1行目はヘッダーなのでスキップ
     const row = data[i];
 
-    
     // **行が空の場合はスキップ**
-    if (!row || row.length < 5 || row[columnRoomId] === undefined || row[columnDeviceId] === undefined) {
+    if (!row || row.length < lastRow ||  row[columnDeviceId] === undefined) {
       continue;
     }
 
-    const sheetRoomId = String(row[columnRoomId]).trim(); // roomId (B列)
     const deviceId = String(row[columnDeviceId]).trim(); // deviceId (E列)
-
-    if (sheetRoomId === String(roomId)) {
-      devices.push(deviceId);
-    }
+    devices.push(deviceId);
   }
 
   // **デバイスリストが正しく取得されたか確認**
-  Logger.log(`取得した ROOMID: ${roomId}, 対応するデバイスIDリスト: ${JSON.stringify(devices)}`);
+  Logger.log(`取得したデバイスIDリスト: ${JSON.stringify(devices)}`);
 
   return devices;
 }
 
+function getLastRowInColumn(sheet, columnIndex) {
+  const lastRow = sheet.getLastRow(); // シート全体の最終行を取得
+  const columnValues = sheet.getRange(1, columnIndex, lastRow).getValues(); // 指定列の値を取得
 
+  // 下から上に向かってループし、最初に値が入っている行を探す
+  for (let i = columnValues.length - 1; i >= 0; i--) {
+    if (columnValues[i][0] !== "") {
+      return i + 1; // 1-based index に変換
+    }
+  }
+  return 0; // データがない場合
+}
 
 

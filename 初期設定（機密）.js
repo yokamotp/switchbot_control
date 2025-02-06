@@ -6,8 +6,7 @@
   const columnAction = 5; //Action（ON/OFF）の記録列
 
   // Spreadsheet Devicesの列
-  const columnRoomId = 1; // roomId (B列)
-  const columnDeviceId = 4; // deviceId (E列)
+  const columnDeviceId = 3; // deviceId (D列)
 
   // SwitchBot操作コマンド
 const ACTION_TURN_ON = "turnOn";
@@ -28,6 +27,4 @@ const INITIAL_CONFIG = {
   // Google カレンダー
   CALENDAR_ID: 'yohei.okamoto@gmail.com', // GoogleカレンダーID（通常は 'primary'）
 
-  // デバイスの電源チェック用コマンド
-  DEVICE_POWER_CHECK_COMMAND: 'lowSpeed' 
 };
