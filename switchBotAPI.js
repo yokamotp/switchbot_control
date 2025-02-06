@@ -31,6 +31,7 @@ function controlRemoteDevices(action, deviceIds) {
   const sheet = SpreadsheetApp.openById(getConfigProperty('SPREADSHEET_ID')).getSheetByName(getConfigProperty('SHEET_NAME'));
 
   let successCount = 0;
+  let errorMessages = [];
 
   for (let deviceId of deviceIds) {
     // APIエンドポイントとリクエスト設定
@@ -81,14 +82,22 @@ function controlRemoteDevices(action, deviceIds) {
         Logger.log(`デバイス ${deviceId} 制御成功: ${command}`);
         successCount++;
       } else {
-        Logger.log(`エラー: デバイス ${deviceId} の制御失敗: ${responseJson.message}`);
+        const errorMsg = `デバイス ${deviceId} の制御失敗: ${responseJson.message}`;
+        Logger.log(`エラー: ${errorMsg}`);
+        errorMessages.push(errorMsg);
       }
     } catch (error) {
-      Logger.log(`エラー: デバイス ${deviceId} へのリクエスト失敗 - ${error.message}`);
+      const errorMsg = `デバイス ${deviceId} へのリクエスト失敗 - ${error.message}`;
+      Logger.log(`エラー: ${errorMsg}`);
+      errorMessages.push(errorMsg);
     }
   }
 
-  return successCount > 0;
+  if (successCount > 0) {
+    return { success: true, message: "全デバイス制御成功。" };
+  } else {
+    return { success: false, message: errorMessages.join("; ") };
+  }
 }
 
 function getAllDeviceIds() {
@@ -99,21 +108,27 @@ function getAllDeviceIds() {
   }
 
   // **カラムのインデックスを指定**
-  const columnDeviceId = 4; // E列（deviceId）
+  const colDeviceId = columnDeviceId; // （deviceId）
 
   const data = sheet.getDataRange().getValues();
   let devices = [];
-  const lastRow = getLastRowInColumn(sheet, columnDeviceId);
+  const lastRow = getLastRowInColumn(sheet, colDeviceId);
 
   for (let i = 1; i < data.length; i++) { // 1行目はヘッダーなのでスキップ
     const row = data[i];
 
     // **行が空の場合はスキップ**
-    if (!row || row.length < lastRow ||  row[columnDeviceId] === undefined) {
+    if (!row || row.length < lastRow ||  row[colDeviceId] === undefined) {
       continue;
     }
 
-    const deviceId = String(row[columnDeviceId]).trim(); // deviceId (E列)
+    const deviceId = String(row[colDeviceId]).trim(); // deviceId (E列)
+    
+    // **空白の場合は追加しない**
+     if (deviceId === "") {
+      continue;
+    }
+
     devices.push(deviceId);
   }
 

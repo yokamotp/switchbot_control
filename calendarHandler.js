@@ -1,6 +1,5 @@
 function parseEventDescription(description) {
   // 正規表現で CHECKIN, CHECKOUT, PROPERTY を取得
-  // const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const checkinMatch = description.match(/CHECKIN:\s*(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2})/);
   const checkoutMatch = description.match(/CHECKOUT:\s*(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2})(?:\s*\+\d{4})?/);
   const propertyMatch = description.match(/PROPERTY:\s*(.+)/);
@@ -27,10 +26,6 @@ function parseEventDescription(description) {
   return { checkinTime, checkoutTime, property };
 }
 
-
-
-
-
 function getSeasonalMode() {
   const now = new Date();
   const month = now.getMonth() + 1; // JavaScriptの月は0始まり（1月 = 0）
@@ -41,7 +36,6 @@ function getSeasonalMode() {
     return "heat"; // 11月～4月は暖房
   }
 }
-
 
 function checkCalendarForACControl() {
   const calendarId = getConfigProperty('CALENDAR_ID');
@@ -90,35 +84,37 @@ function checkCalendarForACControl() {
       continue;
     }
     const checkinStart = new Date(checkinTime.getTime() - 30 * 60 * 1000);
-    const checkoutEnd = new Date(checkoutTime.getTime() + 10 * 60 * 1000);
+    const checkoutPlus10 = new Date(checkoutTime.getTime() + 10 * 60 * 1000); // CHECKOUT + 10分
+    const checkoutPlus60 = new Date(checkoutTime.getTime() + 60 * 60 * 1000); // CHECKOUT + 1時間
 
     Logger.log("CHECKIN時間: " + checkinTime.toLocaleString());
     Logger.log("CHECKOUT時間: " + checkoutTime.toLocaleString());
     
-    if (now >= checkinStart && now < checkoutEnd) {
-      Logger.log("滞在中の部屋あり");
+    if (now >= checkinStart && now < checkinTime) {
+      Logger.log("ON対象の部屋あり");
 
       if (!isEventAlreadyProcessed(eventId, 'ON')) {
-        Logger.log("全デバイスをONにします");
-        const success = controlRemoteDevices('ON', deviceIds);
-        if (success) {
+        Logger.log("ログに実行履歴がないため、デバイスをONにします");
+        const controlResult  = controlRemoteDevices('ON', deviceIds);
+        if (controlResult.success) {
           logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ON');
         } else {
-          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ERROR: ON コマンド失敗');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, `ERROR: ON コマンド失敗 - ${controlResult.message}`);
         }
       } else {
         Logger.log("エアコンONは既に実行済み: " + property);
       }
     }
 
-    if (now >= checkoutTime && now < checkoutEnd) {
+    if (now >= checkoutPlus10 && now < checkoutPlus60) {
+      Logger.log("OFF対象の部屋あり");
       if (!isEventAlreadyProcessed(eventId, 'OFF')) {
-        Logger.log("全デバイスをOFFにします");
-        const success = controlRemoteDevices('OFF', deviceIds);
-        if (success) {
+        Logger.log("ログに実行履歴がないため、デバイスをOFFにします");
+        const controlResult  = controlRemoteDevices('OFF', deviceIds);
+        if (controlResult.success) {
           logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'OFF');
         } else {
-          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, 'ERROR: OFF コマンド失敗');
+          logACAction(eventId, property, eventTitle, checkinTime, checkoutTime, `ERROR: OFF コマンド失敗 - ${controlResult.message}`);
         }
       } else {
         Logger.log("エアコンOFFは既に実行済み: " + property);
