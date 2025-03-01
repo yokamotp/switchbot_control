@@ -53,7 +53,9 @@ function checkCalendarForACControl() {
   const now = new Date();
   Logger.log("===== スクリプト開始: " + now.toLocaleString() + " =====");
 
-  const events = calendar.getEvents(now, new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24時間前
+  const oneDayLater = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24時間後
+  const events = calendar.getEvents(oneDayAgo, oneDayLater, { timeZone: 'Asia/Tokyo'});
   Logger.log("取得したイベント数: " + events.length);
 
   for (let i = 0; i < events.length; i++) {
